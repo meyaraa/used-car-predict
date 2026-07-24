@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-# Buat folder untuk menyimpan gambar hasil EDA
+# folder untuk menyimpan gambar hasil EDA
 os.makedirs("reports", exist_ok=True)
 
 print("Memuat dan membersihkan dataset...")
@@ -23,7 +23,7 @@ df['brand'] = df['name'].apply(lambda x: str(x).split(" ")[0])
 df['has_accident'] = df['condition'].apply(lambda x: 0 if 'No accidents' in str(x) else 1)
 df['is_first_owner'] = df['condition'].apply(lambda x: 1 if '1 Owner' in str(x) else 0)
 
-# Buang kolom mentah yang sudah tidak dipakai (termasuk miles yang lama)
+# Buang kolom mentah yang sudah tidak dipakai 
 cols_to_drop = ['name', 'year', 'color', 'condition', 'miles']
 df = df.drop(columns=cols_to_drop)
 
@@ -32,10 +32,6 @@ df = df[(df['price'] > 1000) & (df['price'] < 100000)]
 
 # Setel gaya grafik
 sns.set_theme(style="whitegrid")
-
-# ==========================================
-# 2. PEMBUATAN GRAFIK
-# ==========================================
 
 # Grafik 1: Distribusi Harga
 print("Membuat grafik 1...")
@@ -89,7 +85,7 @@ plt.xticks(rotation=45)
 plt.savefig('reports/5_top_brands.png', bbox_inches='tight')
 plt.close()
 
-# Grafik 6: Heatmap Korelasi Numerik (Sudah menggunakan km)
+# Grafik 6: Heatmap Korelasi Numerik (menggunakan km)
 print("Membuat grafik 6...")
 plt.figure(figsize=(8, 6))
 corr = df[['price', 'km', 'age', 'has_accident', 'is_first_owner']].corr()
@@ -98,4 +94,4 @@ plt.title('Heatmap Korelasi Fitur Numerik', fontsize=14)
 plt.savefig('reports/6_heatmap_korelasi.png', bbox_inches='tight')
 plt.close()
 
-print("✅ SELESAI! Semua grafik reports telah disimpan di dalam folder 'reports/'")
+print("✅ SELESAI! Semua grafik telah disimpan di dalam folder 'reports/'")

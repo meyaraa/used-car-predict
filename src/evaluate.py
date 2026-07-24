@@ -5,7 +5,6 @@ from datetime import datetime
 import sklearn
 from sklearn.metrics import mean_absolute_error, r2_score
 
-# [FIX] 🔴 Isu 5: Mencegah crash akibat deprecated parameter di Scikit-Learn terbaru
 try:
     from sklearn.metrics import root_mean_squared_error
 except ImportError:
@@ -26,12 +25,10 @@ r2 = r2_score(y_test, y_pred)
 
 print(f"MAE: {mae:,.2f} | RMSE: {rmse:,.2f} | R2: {r2:.4f}")
 
-# [FIX] 🔴 Isu 7: Analisis 5 Kesalahan Prediksi Terburuk
 errors = pd.DataFrame({"Actual": y_test, "Predicted": y_pred, "Abs_Error": abs(y_test - y_pred)})
 print("\n=== 5 KESALAHAN PREDIKSI TERBURUK ===")
 print(errors.sort_values("Abs_Error", ascending=False).head(5))
 
-# [FIX] 🔴 Isu 4: Update metadata.json dengan evaluasi final
 with open("models/metadata.json", "r") as f:
     metadata = json.load(f)
 
