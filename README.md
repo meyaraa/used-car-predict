@@ -89,7 +89,7 @@ Folder `data/` dan file `.joblib` di `models/` tidak dikomit ke Git untuk menjag
 
 **Request valid (200 OK):**
 ```bash
-curl -X POST "[http://127.0.0.1:8000/predict-harga](http://127.0.0.1:8000/predict-harga)" \
+curl -X POST "http://127.0.0.1:8000/predict-harga" \
   -H "Content-Type: application/json" \
   -d '{
     "brand": "Toyota",
@@ -115,7 +115,7 @@ Respons:
 
 **Request tidak valid — field hilang (422 Unprocessable Entity):**
 ```bash
-curl -X POST "[http://127.0.0.1:8000/predict-harga](http://127.0.0.1:8000/predict-harga)" \
+curl -X POST "http://127.0.0.1:8000/predict-harga" \
   -H "Content-Type: application/json" \
   -d '{
     "brand": "Toyota",
