@@ -48,7 +48,7 @@ Folder `data/` dan file `.joblib` di `models/` tidak dikomit ke Git untuk menjag
 ```
 
 4. **Siapkan dataset**
-   Unduh `car_web_scraped_dataset.csv` dari tautan Kaggle di atas, lalu simpan sebagai `data/used_cars.csv`. Atau jalankan:
+   Buat folder 'data/', Unduh `car_web_scraped_dataset.csv` dari tautan Kaggle di atas, lalu simpan sebagai `data/used_cars.csv`. Lalu jalankan:
 ```bash
    python src/load_data.py
 ```
@@ -72,22 +72,24 @@ Folder `data/` dan file `.joblib` di `models/` tidak dikomit ke Git untuk menjag
 ```
    Menghitung MAE, RMSE, R² pada test set (disentuh sekali), menganalisis 5 kesalahan prediksi terburuk, dan memperbarui `models/metadata.json`.
 
-8. **Jalankan API**
+8. **Jalankan test otomatis**
+```bash
+   python -m pytest tests/ -v
+```
+
+9. **Jalankan API**
 ```bash
    uvicorn app.main:app --reload
 ```
    Buka `http://127.0.0.1:8000/docs` untuk mencoba endpoint secara interaktif.
 
-9. **Jalankan test otomatis**
-```bash
-   python -m pytest tests/ -v
-```
+
 
 ## Contoh Pemanggilan API
 
 **Request valid (200 OK):**
 ```bash
-curl -X POST "http://127.0.0.1:8000/predict-harga" \
+curl -X POST "[http://127.0.0.1:8000/predict-harga](http://127.0.0.1:8000/predict-harga)" \
   -H "Content-Type: application/json" \
   -d '{
     "brand": "Toyota",
@@ -101,16 +103,19 @@ Respons:
 ```json
 {
   "status": "success",
-  "estimated_price": 385420000.00,
-  "currency": "IDR",
-  "confidence_margin_pm": 22090000.00,
-  "message": "Harga estimasi berada di rentang ± Rp 22,090,000 berdasarkan RMSE test set."
+  "brand": "Toyota",
+  "age": 4.0,
+  "estimated_price_usd": 2141.22,
+  "estimated_price_idr": 38542000.00,
+  "currency_rate_applied": 18000,
+  "confidence_margin_pm_idr": 2209000.00,
+  "message": "Estimasi harga berhasil dihitung dalam USD dan IDR."
 }
 ```
 
 **Request tidak valid — field hilang (422 Unprocessable Entity):**
 ```bash
-curl -X POST "http://127.0.0.1:8000/predict-harga" \
+curl -X POST "[http://127.0.0.1:8000/predict-harga](http://127.0.0.1:8000/predict-harga)" \
   -H "Content-Type: application/json" \
   -d '{
     "brand": "Toyota",
