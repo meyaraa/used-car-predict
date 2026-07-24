@@ -1,86 +1,89 @@
 import os
+import json
 import joblib
+import logging
 import pandas as pd
 from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel, Field, ConfigDict
-from typing import Literal
 from contextlib import asynccontextmanager
 
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
+
 MODEL_PATH = "models/model.joblib"
+META_PATH = "models/metadata.json"
 model_data = {}
 
-# Menggunakan lifespan sesuai standar FastAPI terbaru dan spesifikasi rubrik
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    if os.path.exists(MODEL_PATH):
+    if os.path.exists(MODEL_PATH) and os.path.exists(META_PATH):
         model_data["pipeline"] = joblib.load(MODEL_PATH)
-    else:
-        model_data["pipeline"] = None
+        with open(META_PATH, "r") as f:
+            model_data["meta"] = json.load(f)
     yield
     model_data.clear()
 
-app = FastAPI(
-    title="Used Car Price Estimation API",
-    description="API untuk memprediksi harga jual kendaraan bekas.",
-    version="1.0.0",
-    lifespan=lifespan
-)
+app = FastAPI(title="Used Car Price API (Truecars Data)", lifespan=lifespan)
 
 class CarPredictionInput(BaseModel):
-    age: float = Field(..., ge=0, le=50, description="Umur kendaraan dalam tahun (0 - 50)")
-    km_driven: float = Field(..., ge=0, description="Total kilometer tempuh")
-    fuel: Literal["Petrol", "Diesel", "CNG", "LPG", "Electric"] = Field(..., description="Jenis bahan bakar")
-    seller_type: Literal["Individual", "Dealer", "Trustmark Dealer"] = Field(..., description="Tipe penjual")
-    transmission: Literal["Manual", "Automatic"] = Field(..., description="Tipe transmisi")
-    owner: Literal["First Owner", "Second Owner", "Third Owner", "Fourth & Above Owner", "Test Drive Car"] = Field(..., description="Riwayat kepemilikan")
+    brand: str = Field(..., description="Merek mobil (contoh: Toyota, Honda, Kia, Chevrolet)")
+    age: float = Field(..., ge=0, le=50, description="Umur mobil dalam hitungan tahun")
+    km: float = Field(..., ge=0, description="Jarak tempuh dalam satuan kilometer")
+    has_accident: int = Field(..., ge=0, le=1, description="1 jika pernah tabrakan/kecelakaan, 0 jika bersih")
+    is_first_owner: int = Field(..., ge=0, le=1, description="1 jika kepemilikan tangan pertama, 0 jika bukan")
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "age": 3.0,
-                "km_driven": 25000.0,
-                "fuel": "Petrol",
-                "seller_type": "Individual",
-                "transmission": "Manual",
-                "owner": "First Owner"
+                "brand": "Toyota",
+                "age": 4.0,
+                "km": 50000.0,
+                "has_accident": 0,
+                "is_first_owner": 1
             }
         }
     )
-
 @app.get("/")
-def read_root():
-    return {"message": "Selamat Datang di API Estimasi Harga Kendaraan Bekas"}
+def info_layanan():
+    return {
+        "nama_layanan": "API Prediksi Harga Mobil Bekas (Truecars)",
+        "deskripsi": "Melayani estimasi harga mobil bekas (dalam Rupiah) menggunakan model Machine Learning berbasis Random Forest/Ridge.",
+        "status": "Aktif",
+        "dokumentasi_api": "Silakan akses /docs untuk mencoba API"
+    }
 
 @app.get("/health")
 def health_check():
-    is_loaded = model_data.get("pipeline") is not None
-    return {
-        "status": "healthy" if is_loaded else "unhealthy",
-        "model_loaded": is_loaded
-    }
+    return {"status": "healthy" if "pipeline" in model_data else "unhealthy", "model_loaded": "pipeline" in model_data}
 
 @app.post("/predict-harga")
 def predict_harga(payload: CarPredictionInput):
-    if model_data.get("pipeline") is None:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model belum siap/termuat."
-        )
+    if "pipeline" not in model_data:
+        raise HTTPException(status_code=503, detail="Model belum siap.")
     
     input_data = pd.DataFrame([payload.model_dump()])
+    logger.info(f"Menerima request prediksi: {payload.model_dump()}")
     
     try:
         prediction = model_data["pipeline"].predict(input_data)[0]
+        final_price_usd = max(0.0, float(prediction))
+        rmse_margin_usd = model_data["meta"].get("test_rmse", 0)
         
-        # Tambahkan konversi dari Rupee ke Rupiah (1 INR = sekitar Rp 190)
-        harga_rupiah = prediction * 190
+        # --- KONVERSI MATA UANG USD KE IDR ---
+        # Sumber kurs: Asumsi rata-rata nilai tukar USD ke IDR pada pertengahan 2026
+        KURS_USD_KE_IDR = 18100.0 
         
-        final_price = max(0.0, float(harga_rupiah))
+        final_price_idr = final_price_usd * KURS_USD_KE_IDR
+        rmse_margin_idr = rmse_margin_usd * KURS_USD_KE_IDR
         
+        logger.info(f"Prediksi sukses: Rp {final_price_idr}")
         return {
             "status": "success",
-            "estimated_price": round(final_price, 2),
-            "currency": "IDR"
+            "estimated_price": round(final_price_idr, 2),
+            "currency": "IDR",
+            "confidence_margin_pm": round(rmse_margin_idr, 2),
+            "message": f"Harga estimasi berada di rentang ± Rp {round(rmse_margin_idr, 2):,} berdasarkan RMSE test set."
         }
     except Exception as e:
+        logger.error(f"Gagal melakukan prediksi: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

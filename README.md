@@ -1,9 +1,22 @@
-Artefak model (.joblib) dan dataset (data/) tidak dikomit ke Git untuk menjaga ukuran repositori tetap ringan serta menghindari pembocoran data peka/besar. Penguji dapat memproduksi ulang seluruh artefak secara otomatis dengan menjalankan skrip python src/load_data.py, python src/train.py, dan python src/evaluate.py secara berurutan.
+# Estimasi Harga Kendaraan Bekas (End-to-End ML)
 
-eskripsi Masalah: Estimasi Harga Kendaraan Bekas untuk menyarankan harga jual wajar kepada penjual.
+## Deskripsi Masalah
+Proyek ini menyelesaikan Kasus B (Estimasi Harga Kendaraan Bekas) untuk sebuah marketplace otomotif. Model regresi (Random Forest) dilatih untuk memprediksi harga jual wajar guna menyarankan harga terbaik kepada penjual.
 
-Sumber Data: Dataset "Vehicle dataset from cardekho" oleh Nehal Birla di Kaggle.
+## Sumber Data & Lisensi
+* **Sumber:** Kaggle - Vehicle dataset from cardekho (oleh Nehal Birla)
+* **URL:** https://www.kaggle.com/datasets/nehalbirla/vehicle-dataset-from-cardekho
+* **Lisensi:** Database Contents License (DbCL) / PDDL.
+* **Catatan Dataset:** Gunakan file `CAR DETAILS FROM CAR DEKHO.csv` dan letakkan di dalam folder `data/used_cars.csv`.
 
-URL: [https://www.kaggle.com/datasets/nehalbirla/vehicle-dataset-from-cardekho](https://www.kaggle.com/datasets/nehalbirla/vehicle-dataset-from-cardekho)
+## Lingkungan Pengembangan (Versions)
+* Python: 3.14.x (atau kompatibel >= 3.10)
+* scikit-learn: >= 1.3.0
+* pandas: >= 2.0.0
+* fastapi: 0.110.0
 
-Lisensi: Database: Open Database, Contents: Database Contents License (DbCL) / PDDL (Silakan cek ulang di tab "About Dataset" lalu gulir ke bagian "License" di halaman Kaggle tersebut untuk kepastiannya).
+## Langkah Menjalankan Proyek (Dari Nol)
+1. **Clone Repositori & Masuk Folder:**
+   ```bash
+   git clone <url-repo-anda>
+   cd <nama-folder-repo>

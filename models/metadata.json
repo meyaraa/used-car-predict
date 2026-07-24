@@ -1,14 +1,9 @@
 {
-    "model_type": "RandomForest",
-    "cv_r2_score": 0.6316494272869677,
-    "numeric_features": [
-        "km_driven",
-        "age"
-    ],
-    "categorical_features": [
-        "fuel",
-        "seller_type",
-        "transmission",
-        "owner"
-    ]
+    "model_type": "Ridge",
+    "cv_r2_score": 0.5199402200363232,
+    "test_mae": 6644.997169988894,
+    "test_rmse": 13723.728195984582,
+    "test_r2": 0.26554133273854075,
+    "trained_at": "2026-07-23T23:36:34.765507",
+    "sklearn_version": "1.9.0"
 }
